@@ -26,6 +26,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { BusinessCardScanner } from "@/components/contacts/business-card-scanner";
+import { ContactDialog, type ContactDefaultValues } from "@/components/contacts/contact-dialog";
+import { useState, useCallback } from "react";
 
 const kpiConfig = [
   {
@@ -103,6 +106,21 @@ export default function DashboardPage() {
   const contacts = useQuery(api.contacts.api.list);
   const offerStats = useQuery(api.offers.api.stats);
   const recentActivity = useQuery(api.timeline.api.listRecent);
+
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [contactDefaults, setContactDefaults] = useState<ContactDefaultValues | undefined>();
+
+  const handleScanResult = useCallback((data: ContactDefaultValues) => {
+    setContactDefaults(data);
+    setContactDialogOpen(true);
+  }, []);
+
+  function handleContactDialogClose(open: boolean) {
+    setContactDialogOpen(open);
+    if (!open) {
+      setContactDefaults(undefined);
+    }
+  }
 
   const contactCount = contacts?.length ?? 0;
   const activeLeads =
@@ -252,6 +270,10 @@ export default function DashboardPage() {
               <CardDescription>Häufig verwendete Aktionen</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+              <BusinessCardScanner
+                onContactCreate={handleScanResult}
+                className="w-full justify-start gap-2"
+              />
               <Link href="/contacts?new=true" className="block">
                 <Button
                   variant="outline"
@@ -305,6 +327,12 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      <ContactDialog
+        open={contactDialogOpen}
+        onOpenChange={handleContactDialogClose}
+        defaultValues={contactDefaults}
+      />
     </div>
   );
 }

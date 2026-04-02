@@ -8,6 +8,8 @@ export default defineSchema({
     position: v.optional(v.string()),
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
+    website: v.optional(v.string()),
+    address: v.optional(v.string()),
     statusId: v.optional(v.id("statuses")),
     notes: v.optional(v.string()),
     tags: v.array(v.string()),

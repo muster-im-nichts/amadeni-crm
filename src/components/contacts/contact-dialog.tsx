@@ -25,7 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const contactSchema = z.object({
   firstName: z.string().min(1, "Vorname ist erforderlich"),
@@ -36,20 +37,49 @@ const contactSchema = z.object({
   position: z.string(),
   notes: z.string(),
   statusId: z.string(),
+  website: z.string(),
+  address: z.string(),
 });
 
 type ContactFormValues = z.infer<typeof contactSchema>;
+
+export interface ContactDefaultValues {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  position?: string;
+  notes?: string;
+  website?: string;
+  address?: string;
+}
 
 interface ContactDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contact?: any;
+  defaultValues?: ContactDefaultValues;
 }
+
+const emptyValues: ContactFormValues = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  company: "",
+  position: "",
+  notes: "",
+  statusId: "",
+  website: "",
+  address: "",
+};
 
 export function ContactDialog({
   open,
   onOpenChange,
   contact,
+  defaultValues,
 }: ContactDialogProps) {
   const createContact = useMutation(api.contacts.api.create);
   const updateContact = useMutation(api.contacts.api.update);
@@ -57,18 +87,12 @@ export function ContactDialog({
 
   const isEditing = !!contact;
 
+  const hasExtraDefaults = !!(defaultValues?.website || defaultValues?.address);
+  const [extraOpen, setExtraOpen] = useState(false);
+
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      company: "",
-      position: "",
-      notes: "",
-      statusId: "",
-    },
+    defaultValues: emptyValues,
   });
 
   useEffect(() => {
@@ -82,20 +106,20 @@ export function ContactDialog({
         position: contact.position ?? "",
         notes: contact.notes ?? "",
         statusId: contact.statusId ?? contact.status?._id ?? "",
+        website: contact.website ?? "",
+        address: contact.address ?? "",
       });
     } else {
       form.reset({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        company: "",
-        position: "",
-        notes: "",
+        ...emptyValues,
+        ...defaultValues,
         statusId: statuses?.[0]?._id ?? "",
       });
+      if (hasExtraDefaults) {
+        setExtraOpen(true);
+      }
     }
-  }, [contact, open, statuses, form]);
+  }, [contact, open, statuses, form, defaultValues, hasExtraDefaults]);
 
   async function onSubmit(data: ContactFormValues) {
     try {
@@ -242,6 +266,40 @@ export function ContactDialog({
               {...form.register("notes")}
               className="min-h-20"
             />
+          </div>
+
+          {/* Collapsible: Weitere Informationen */}
+          <div className="rounded-lg border">
+            <button
+              type="button"
+              onClick={() => setExtraOpen(!extraOpen)}
+              className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted/50 transition-colors rounded-lg"
+            >
+              Weitere Informationen
+              <ChevronDown
+                className={`size-4 text-muted-foreground transition-transform ${extraOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {extraOpen && (
+              <div className="px-3 pb-3 space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="website">Webseite</Label>
+                  <Input
+                    id="website"
+                    placeholder="https://www.beispiel.de"
+                    {...form.register("website")}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address">Adresse</Label>
+                  <Input
+                    id="address"
+                    placeholder="Musterstraße 1, 10115 Berlin"
+                    {...form.register("address")}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
