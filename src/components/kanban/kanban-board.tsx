@@ -49,10 +49,7 @@ export function KanbanBoard() {
     return (
       <div className="flex gap-4 overflow-x-auto p-1">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="min-w-[280px] w-[280px] shrink-0 space-y-3"
-          >
+          <div key={i} className="min-w-[280px] w-[280px] shrink-0 space-y-3">
             <Skeleton className="h-10 rounded-xl" />
             <div className="space-y-2">
               {Array.from({ length: 3 }).map((_, j) => (

@@ -87,7 +87,9 @@ export function ContactTable({ contacts, onEdit }: ContactTableProps) {
           <TableHead className="hidden sm:table-cell">Unternehmen</TableHead>
           <TableHead>Status</TableHead>
           <TableHead className="hidden lg:table-cell">Tags</TableHead>
-          <TableHead className="hidden md:table-cell">Letzter Kontakt</TableHead>
+          <TableHead className="hidden md:table-cell">
+            Letzter Kontakt
+          </TableHead>
           <TableHead className="w-10">
             <span className="sr-only">Aktionen</span>
           </TableHead>
@@ -102,7 +104,9 @@ export function ContactTable({ contacts, onEdit }: ContactTableProps) {
           >
             <TableCell>
               <div>
-                <span className="font-medium">{contact.firstName} {contact.lastName}</span>
+                <span className="font-medium">
+                  {contact.firstName} {contact.lastName}
+                </span>
                 {contact.position && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {contact.position}
@@ -115,12 +119,12 @@ export function ContactTable({ contacts, onEdit }: ContactTableProps) {
             </TableCell>
             <TableCell>
               {contact.status ? (
-                <span
-                  className="inline-flex items-center gap-1.5 text-xs font-medium"
-                >
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium">
                   <span
                     className="size-2 rounded-full shrink-0"
-                    style={{ backgroundColor: contact.status.color || "#94a3b8" }}
+                    style={{
+                      backgroundColor: contact.status.color || "#94a3b8",
+                    }}
                   />
                   {contact.status.name}
                 </span>
@@ -183,7 +187,10 @@ export function ContactTable({ contacts, onEdit }: ContactTableProps) {
                     variant="destructive"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(contact._id, `${contact.firstName} ${contact.lastName}`);
+                      handleDelete(
+                        contact._id,
+                        `${contact.firstName} ${contact.lastName}`,
+                      );
                     }}
                   >
                     <Trash2 className="size-3.5" />

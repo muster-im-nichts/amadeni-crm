@@ -109,7 +109,7 @@ export default function DashboardPage() {
     contacts?.filter(
       (c: any) =>
         c.status?.name?.toLowerCase() !== "verloren" &&
-        c.status?.name?.toLowerCase() !== "kunde"
+        c.status?.name?.toLowerCase() !== "kunde",
     )?.length ?? 0;
 
   const kpiValues: Record<string, number> = {
@@ -134,8 +134,7 @@ export default function DashboardPage() {
         {kpiConfig.map((kpi) => {
           const Icon = kpi.icon;
           const value = kpiValues[kpi.key];
-          const isLoading =
-            contacts === undefined || offerStats === undefined;
+          const isLoading = contacts === undefined || offerStats === undefined;
 
           return (
             <Card key={kpi.key}>
@@ -156,9 +155,7 @@ export default function DashboardPage() {
                   <Skeleton className="h-8 w-24" />
                 ) : (
                   <p className="text-2xl font-bold tracking-tight">
-                    {kpi.key === "value"
-                      ? formatCurrency(value)
-                      : value}
+                    {kpi.key === "value" ? formatCurrency(value) : value}
                   </p>
                 )}
               </CardContent>
@@ -326,9 +323,7 @@ function StatusDistribution({ contacts }: { contacts: any[] }) {
     statusCounts[name].count++;
   }
 
-  const entries = Object.values(statusCounts).sort(
-    (a, b) => b.count - a.count
-  );
+  const entries = Object.values(statusCounts).sort((a, b) => b.count - a.count);
   const total = contacts.length || 1;
 
   if (entries.length === 0) {

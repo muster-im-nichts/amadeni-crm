@@ -117,9 +117,7 @@ export function ContactDialog({
       form.reset();
     } catch {
       toast.error(
-        isEditing
-          ? "Fehler beim Aktualisieren"
-          : "Fehler beim Erstellen"
+        isEditing ? "Fehler beim Aktualisieren" : "Fehler beim Erstellen",
       );
     }
   }
@@ -215,7 +213,7 @@ export function ContactDialog({
             <Label htmlFor="statusId">Status</Label>
             <Select
               value={form.watch("statusId")}
-              onValueChange={(val) => form.setValue("statusId", val)}
+              onValueChange={(val) => form.setValue("statusId", val ?? "")}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Status wählen" />

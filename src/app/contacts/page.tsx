@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { Suspense, useState, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { ContactTable } from "@/components/contacts/contact-table";
@@ -19,6 +19,14 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function ContactsPage() {
+  return (
+    <Suspense>
+      <ContactsPageInner />
+    </Suspense>
+  );
+}
+
+function ContactsPageInner() {
   const contacts = useQuery(api.contacts.api.list);
   const statuses = useQuery(api.statuses.api.list);
   const tags = useQuery(api.tags.api.list);
@@ -44,8 +52,9 @@ export default function ContactsPage() {
       // Search filter
       if (search) {
         const q = search.toLowerCase();
-        const nameMatch =
-          `${c.firstName} ${c.lastName}`.toLowerCase().includes(q);
+        const nameMatch = `${c.firstName} ${c.lastName}`
+          .toLowerCase()
+          .includes(q);
         const companyMatch = c.company?.toLowerCase().includes(q);
         if (!nameMatch && !companyMatch) return false;
       }
@@ -59,7 +68,7 @@ export default function ContactsPage() {
       // Tag filter
       if (tagFilter !== "all") {
         const hasTag = c.tags?.some(
-          (t: any) => t._id === tagFilter || t.name === tagFilter
+          (t: any) => t._id === tagFilter || t.name === tagFilter,
         );
         if (!hasTag) return false;
       }
@@ -118,7 +127,10 @@ export default function ContactsPage() {
             className="pl-8"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => setStatusFilter(v ?? "all")}
+        >
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -137,7 +149,10 @@ export default function ContactsPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={tagFilter} onValueChange={setTagFilter}>
+        <Select
+          value={tagFilter}
+          onValueChange={(v) => setTagFilter(v ?? "all")}
+        >
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Tags" />
           </SelectTrigger>

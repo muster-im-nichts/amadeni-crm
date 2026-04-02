@@ -89,7 +89,7 @@ export function TimelineEntry({ entry, isLast }: TimelineEntryProps) {
       <div
         className={cn(
           "flex size-8 shrink-0 items-center justify-center rounded-lg z-10",
-          config.bg
+          config.bg,
         )}
       >
         <Icon className={cn("size-3.5", config.color)} />

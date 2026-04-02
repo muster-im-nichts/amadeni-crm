@@ -40,7 +40,7 @@ export function KanbanCard({ contact, isDragging }: KanbanCardProps) {
       onClick={() => router.push(`/contacts/${contact._id}`)}
       className={cn(
         "rounded-lg border bg-card p-3 cursor-pointer transition-all hover:ring-1 hover:ring-ring/20 hover:shadow-sm",
-        isDragging && "opacity-50 rotate-2 shadow-lg"
+        isDragging && "opacity-50 rotate-2 shadow-lg",
       )}
     >
       {/* Name */}

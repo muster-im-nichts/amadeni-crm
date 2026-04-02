@@ -36,7 +36,7 @@ export function Sidebar() {
       <div
         className={cn(
           "hidden md:flex flex-col border-r border-sidebar-border bg-sidebar transition-all duration-200 ease-in-out",
-          collapsed ? "w-[68px]" : "w-[250px]"
+          collapsed ? "w-[68px]" : "w-[250px]",
         )}
       >
         {/* Logo area */}
@@ -57,7 +57,10 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon-sm"
-            className={cn("text-muted-foreground", collapsed ? "mx-auto" : "ml-auto")}
+            className={cn(
+              "text-muted-foreground",
+              collapsed ? "mx-auto" : "ml-auto",
+            )}
             onClick={() => setCollapsed(!collapsed)}
           >
             {collapsed ? (
@@ -83,7 +86,7 @@ export function Sidebar() {
                   "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                 )}
               >
                 <item.icon
@@ -91,7 +94,7 @@ export function Sidebar() {
                     "size-[18px] shrink-0 transition-colors",
                     isActive
                       ? "text-sidebar-primary"
-                      : "text-muted-foreground group-hover:text-sidebar-foreground"
+                      : "text-muted-foreground group-hover:text-sidebar-foreground",
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
@@ -137,9 +140,7 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                isActive ? "text-primary" : "text-muted-foreground",
               )}
             >
               <item.icon className="size-5" />

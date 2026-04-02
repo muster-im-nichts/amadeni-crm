@@ -52,7 +52,8 @@ function ColorPicker({
             className="size-7 rounded-md border-2 transition-all hover:scale-110"
             style={{
               backgroundColor: color,
-              borderColor: value === color ? "var(--foreground)" : "transparent",
+              borderColor:
+                value === color ? "var(--foreground)" : "transparent",
             }}
             onClick={() => {
               onChange(color);
@@ -92,7 +93,13 @@ interface ItemDialogProps {
   onSave: (data: { name: string; color: string; id?: string }) => Promise<void>;
 }
 
-function ItemDialog({ open, onOpenChange, item, type, onSave }: ItemDialogProps) {
+function ItemDialog({
+  open,
+  onOpenChange,
+  item,
+  type,
+  onSave,
+}: ItemDialogProps) {
   const [name, setName] = useState(item?.name ?? "");
   const [color, setColor] = useState(item?.color ?? presetColors[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -173,7 +180,11 @@ function StatusTab() {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
-  async function handleSave(data: { name: string; color: string; id?: string }) {
+  async function handleSave(data: {
+    name: string;
+    color: string;
+    id?: string;
+  }) {
     if (data.id) {
       await updateStatus({
         id: data.id as any,
@@ -234,7 +245,8 @@ function StatusTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {statuses.length} Status definiert. Reihenfolge per Drag & Drop ändern.
+          {statuses.length} Status definiert. Reihenfolge per Drag & Drop
+          ändern.
         </p>
         <Button
           size="sm"
@@ -316,7 +328,11 @@ function TagsTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  async function handleSave(data: { name: string; color: string; id?: string }) {
+  async function handleSave(data: {
+    name: string;
+    color: string;
+    id?: string;
+  }) {
     if (data.id) {
       await updateTag({
         id: data.id as any,

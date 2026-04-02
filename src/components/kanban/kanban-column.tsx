@@ -22,7 +22,7 @@ export function KanbanColumn({ status, contacts, onDrop }: KanbanColumnProps) {
     <div
       className={cn(
         "flex flex-col rounded-xl border bg-muted/30 min-w-[280px] w-[280px] shrink-0 transition-colors",
-        isOver && "ring-2 ring-primary/30 bg-primary/5"
+        isOver && "ring-2 ring-primary/30 bg-primary/5",
       )}
       onDragOver={(e) => {
         e.preventDefault();

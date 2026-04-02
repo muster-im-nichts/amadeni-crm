@@ -38,11 +38,30 @@ import { TimelineList } from "@/components/timeline/timeline-list";
 import { OfferDialog } from "@/components/offers/offer-dialog";
 import { ContactDialog } from "@/components/contacts/contact-dialog";
 
-const offerStatusColors: Record<string, { bg: string; text: string; label: string }> = {
-  draft: { bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-600 dark:text-slate-400", label: "Entwurf" },
-  sent: { bg: "bg-blue-50 dark:bg-blue-950", text: "text-blue-600 dark:text-blue-400", label: "Versendet" },
-  accepted: { bg: "bg-emerald-50 dark:bg-emerald-950", text: "text-emerald-600 dark:text-emerald-400", label: "Angenommen" },
-  rejected: { bg: "bg-red-50 dark:bg-red-950", text: "text-red-600 dark:text-red-400", label: "Abgelehnt" },
+const offerStatusColors: Record<
+  string,
+  { bg: string; text: string; label: string }
+> = {
+  draft: {
+    bg: "bg-slate-100 dark:bg-slate-800",
+    text: "text-slate-600 dark:text-slate-400",
+    label: "Entwurf",
+  },
+  sent: {
+    bg: "bg-blue-50 dark:bg-blue-950",
+    text: "text-blue-600 dark:text-blue-400",
+    label: "Versendet",
+  },
+  accepted: {
+    bg: "bg-emerald-50 dark:bg-emerald-950",
+    text: "text-emerald-600 dark:text-emerald-400",
+    label: "Angenommen",
+  },
+  rejected: {
+    bg: "bg-red-50 dark:bg-red-950",
+    text: "text-red-600 dark:text-red-400",
+    label: "Abgelehnt",
+  },
 };
 
 function formatCurrency(value: number) {
@@ -226,7 +245,7 @@ export default function ContactDetailPage({
                   </span>
                   <Select
                     value={contact.statusId ?? contact.status?._id ?? ""}
-                    onValueChange={handleStatusChange}
+                    onValueChange={(v) => v && handleStatusChange(v)}
                   >
                     <SelectTrigger className="w-[160px]" size="sm">
                       <SelectValue placeholder="Status wählen" />

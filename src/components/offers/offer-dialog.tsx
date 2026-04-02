@@ -29,7 +29,7 @@ import { useEffect } from "react";
 
 const offerSchema = z.object({
   title: z.string().min(1, "Titel ist erforderlich"),
-  amount: z.coerce.number().min(0, "Betrag muss positiv sein"),
+  amount: z.number().min(0, "Betrag muss positiv sein"),
   status: z.string().min(1, "Status ist erforderlich"),
   description: z.string(),
 });
@@ -108,9 +108,7 @@ export function OfferDialog({
       form.reset();
     } catch {
       toast.error(
-        isEditing
-          ? "Fehler beim Aktualisieren"
-          : "Fehler beim Erstellen"
+        isEditing ? "Fehler beim Aktualisieren" : "Fehler beim Erstellen",
       );
     }
   }
@@ -154,7 +152,7 @@ export function OfferDialog({
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                {...form.register("amount")}
+                {...form.register("amount", { valueAsNumber: true })}
                 aria-invalid={!!form.formState.errors.amount}
               />
             </div>
@@ -162,7 +160,7 @@ export function OfferDialog({
               <Label htmlFor="offerStatus">Status</Label>
               <Select
                 value={form.watch("status")}
-                onValueChange={(val) => form.setValue("status", val)}
+                onValueChange={(val) => form.setValue("status", val ?? "draft")}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Status" />

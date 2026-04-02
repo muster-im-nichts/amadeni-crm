@@ -58,13 +58,7 @@ export function TimelineList({ contactId }: TimelineListProps) {
 
   function openDialog(type: string) {
     setEntryType(type);
-    setTitle(
-      type === "call"
-        ? "Anruf"
-        : type === "meeting"
-          ? "Meeting"
-          : ""
-    );
+    setTitle(type === "call" ? "Anruf" : type === "meeting" ? "Meeting" : "");
     setContent("");
     setDialogOpen(true);
   }
@@ -80,15 +74,27 @@ export function TimelineList({ contactId }: TimelineListProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Aktivitäten</h3>
         <div className="flex gap-1.5">
-          <Button variant="outline" size="xs" onClick={() => openDialog("note")}>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => openDialog("note")}
+          >
             <StickyNote className="size-3" />
             <span className="hidden sm:inline">Notiz</span>
           </Button>
-          <Button variant="outline" size="xs" onClick={() => openDialog("call")}>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => openDialog("call")}
+          >
             <Phone className="size-3" />
             <span className="hidden sm:inline">Anruf</span>
           </Button>
-          <Button variant="outline" size="xs" onClick={() => openDialog("meeting")}>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => openDialog("meeting")}
+          >
             <CalendarDays className="size-3" />
             <span className="hidden sm:inline">Meeting</span>
           </Button>
@@ -153,10 +159,7 @@ export function TimelineList({ contactId }: TimelineListProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Abbrechen
             </Button>
             <Button
