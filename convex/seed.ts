@@ -4,13 +4,17 @@ import { DEFAULT_CURRENCY } from "./shared";
 
 type SeedContact = {
   name: string;
-  company: string;
   position: string;
   email: string;
   phone: string;
   statusName: string;
   notes: string;
   tags: string[];
+  companyAssignments: Array<{
+    companyName: string;
+    role?: string;
+    isPrimary?: boolean;
+  }>;
   timeline: Array<{
     type:
       | "note"
@@ -51,16 +55,83 @@ const TAG_SEEDS = [
   { name: "Gesundheit", color: "#ec4899" },
 ] as const;
 
+const COMPANY_SEEDS = [
+  {
+    name: "Schneider IT-Systeme GmbH",
+    industry: "IT & Digitalisierung",
+    website: "https://www.schneider-it.de",
+    address: "Friedrichstraße 88, 10117 Berlin",
+    phone: "+49 30 5481 2200",
+    email: "info@schneider-it.de",
+    notes: "Managed-IT und CRM-Einführungen für mittelständische Kunden.",
+  },
+  {
+    name: "TechVision AG",
+    industry: "Software & Innovation",
+    website: "https://www.techvision.ag",
+    address: "Kaistraße 14, 40221 Düsseldorf",
+    phone: "+49 211 4450 990",
+    email: "kontakt@techvision.ag",
+    notes: "Betreibt mehrere Digitalisierungsinitiativen mit Partnernetzwerk.",
+  },
+  {
+    name: "Müller Bau GmbH",
+    industry: "Bau & Projektentwicklung",
+    website: "https://www.mueller-bau.de",
+    address: "Industriestraße 27, 50667 Köln",
+    phone: "+49 221 7712 440",
+    email: "vertrieb@mueller-bau.de",
+    notes: "Baut gewerbliche Projekte und arbeitet mit externen Planungsbüros.",
+  },
+  {
+    name: "Gesundheit Plus GmbH",
+    industry: "Gesundheit & Pflege",
+    website: "https://www.gesundheit-plus.de",
+    address: "Leopoldstraße 41, 80802 München",
+    phone: "+49 89 5512 600",
+    email: "service@gesundheit-plus.de",
+    notes: "Koordiniert mehrere medizinische Einrichtungen und Pflegedienste.",
+  },
+  {
+    name: "Krüger Consulting Partners",
+    industry: "Unternehmensberatung",
+    website: "https://www.kc-partners.de",
+    address: "Taunusanlage 10, 60325 Frankfurt am Main",
+    phone: "+49 69 3344 8812",
+    email: "kontakt@kc-partners.de",
+    notes: "Beratungshaus mit Fokus auf Prozesse, Vertrieb und CRM-Rollout.",
+  },
+  {
+    name: "Braun Elektrotechnik GmbH",
+    industry: "Elektrotechnik",
+    website: "https://www.braun-elektrotechnik.de",
+    address: "Siemensallee 9, 76187 Karlsruhe",
+    phone: "+49 721 9911 305",
+    email: "sales@braun-elektrotechnik.de",
+    notes: "Technikbetrieb mit Angebots- und Serviceprozessen im Außendienst.",
+  },
+] as const;
+
 const CONTACT_SEEDS: SeedContact[] = [
   {
     name: "Anna Schneider",
-    company: "Schneider IT-Systeme GmbH",
     position: "Geschäftsführerin",
     email: "anna.schneider@schneider-it.de",
     phone: "+49 30 5481 2200",
     statusName: "Verhandlung",
     notes: "Plant die Einführung eines neuen CRM für Vertrieb und Kundenservice.",
     tags: ["IT", "Beratung"],
+    companyAssignments: [
+      {
+        companyName: "Schneider IT-Systeme GmbH",
+        role: "Geschäftsführerin",
+        isPrimary: true,
+      },
+      {
+        companyName: "TechVision AG",
+        role: "Beirätin",
+      },
+    ],
     timeline: [
       {
         type: "call",
@@ -98,13 +169,23 @@ const CONTACT_SEEDS: SeedContact[] = [
   },
   {
     name: "Lukas Weber",
-    company: "Weber Bauplanung AG",
     position: "Leiter Vertrieb",
     email: "lukas.weber@weber-bauplanung.de",
     phone: "+49 211 8834 109",
     statusName: "Angebot gesendet",
     notes: "Mehrere Niederlassungen, möchte gemeinsame Kontakt- und Angebotsdaten.",
     tags: ["Bau"],
+    companyAssignments: [
+      {
+        companyName: "Müller Bau GmbH",
+        role: "Leiter Vertrieb",
+        isPrimary: true,
+      },
+      {
+        companyName: "TechVision AG",
+        role: "Projektpartner",
+      },
+    ],
     timeline: [
       {
         type: "note",
@@ -136,13 +217,19 @@ const CONTACT_SEEDS: SeedContact[] = [
   },
   {
     name: "Miriam Hoffmann",
-    company: "Hoffmann Sanitär & Service",
     position: "Inhaberin",
     email: "m.hoffmann@hoffmann-sanitaer.de",
     phone: "+49 40 2298 775",
     statusName: "Kontaktiert",
     notes: "Sucht einfache mobile Pflege von Kundennotizen für Außendienst.",
     tags: ["Handwerk"],
+    companyAssignments: [
+      {
+        companyName: "Müller Bau GmbH",
+        role: "Leitung Servicekoordination",
+        isPrimary: true,
+      },
+    ],
     timeline: [
       {
         type: "call",
@@ -160,13 +247,23 @@ const CONTACT_SEEDS: SeedContact[] = [
   },
   {
     name: "David Krüger",
-    company: "Krüger Consulting Partners",
     position: "Partner",
     email: "d.krueger@kc-partners.de",
     phone: "+49 69 3344 8812",
     statusName: "Gewonnen",
     notes: "Braucht saubere Dokumentation pro Kunde und einfache Aktivitätschronik.",
     tags: ["Beratung"],
+    companyAssignments: [
+      {
+        companyName: "Krüger Consulting Partners",
+        role: "Partner",
+        isPrimary: true,
+      },
+      {
+        companyName: "TechVision AG",
+        role: "Senior Berater",
+      },
+    ],
     timeline: [
       {
         type: "meeting",
@@ -198,13 +295,19 @@ const CONTACT_SEEDS: SeedContact[] = [
   },
   {
     name: "Sophie Neumann",
-    company: "Neumann MedCare",
     position: "Praxismanagerin",
     email: "s.neumann@medcare-neumann.de",
     phone: "+49 89 5512 600",
     statusName: "Neu",
     notes: "Will eingehende Patientenanfragen und Rückrufe strukturiert nachhalten.",
     tags: ["Gesundheit"],
+    companyAssignments: [
+      {
+        companyName: "Gesundheit Plus GmbH",
+        role: "Praxismanagerin",
+        isPrimary: true,
+      },
+    ],
     timeline: [
       {
         type: "note",
@@ -222,13 +325,19 @@ const CONTACT_SEEDS: SeedContact[] = [
   },
   {
     name: "Felix Braun",
-    company: "Braun Elektrotechnik GmbH",
     position: "Vertriebsleiter",
     email: "felix.braun@braun-elektrotechnik.de",
     phone: "+49 721 9911 305",
     statusName: "Verloren",
     notes: "Hat sich zunächst für eine bestehende Branchenlösung entschieden.",
     tags: ["Handwerk", "IT"],
+    companyAssignments: [
+      {
+        companyName: "Braun Elektrotechnik GmbH",
+        role: "Vertriebsleiter",
+        isPrimary: true,
+      },
+    ],
     timeline: [
       {
         type: "call",
@@ -254,13 +363,23 @@ const CONTACT_SEEDS: SeedContact[] = [
   },
   {
     name: "Katharina Vogel",
-    company: "Vogel Architektur Studio",
     position: "Office Managerin",
     email: "k.vogel@vogel-architektur.de",
     phone: "+49 351 4482 910",
     statusName: "Kontaktiert",
     notes: "Benötigt mehr Transparenz über Rückrufe, Meetings und offene Angebote.",
     tags: ["Bau", "Beratung"],
+    companyAssignments: [
+      {
+        companyName: "Müller Bau GmbH",
+        role: "Projektkoordination",
+        isPrimary: true,
+      },
+      {
+        companyName: "Krüger Consulting Partners",
+        role: "Externe Office Managerin",
+      },
+    ],
     timeline: [
       {
         type: "email",
@@ -278,13 +397,23 @@ const CONTACT_SEEDS: SeedContact[] = [
   },
   {
     name: "Tobias Richter",
-    company: "Richter Pflegehilfen GmbH",
     position: "Geschäftsführer",
     email: "t.richter@richter-pflegehilfen.de",
     phone: "+49 231 7744 560",
     statusName: "Neu",
     notes: "Möchte zuerst nur ein kleines Team onboarden und später skalieren.",
     tags: ["Gesundheit", "Beratung"],
+    companyAssignments: [
+      {
+        companyName: "Gesundheit Plus GmbH",
+        role: "Geschäftsführer",
+        isPrimary: true,
+      },
+      {
+        companyName: "Krüger Consulting Partners",
+        role: "Netzwerkpartner",
+      },
+    ],
     timeline: [
       {
         type: "note",
@@ -319,7 +448,18 @@ export const seed = internalMutation({
       tagIds.set(tag.name, id);
     }
 
+    const companyIds = new Map<string, Id<"companies">>();
+    for (const company of COMPANY_SEEDS) {
+      const id = await ctx.db.insert("companies", {
+        ...company,
+        createdAt: now,
+        updatedAt: now,
+      });
+      companyIds.set(company.name, id);
+    }
+
     const contactIds: Id<"contacts">[] = [];
+    let assignmentCount = 0;
 
     for (const [index, contact] of CONTACT_SEEDS.entries()) {
       const statusId = statusIds.get(contact.statusName);
@@ -336,7 +476,6 @@ export const seed = internalMutation({
 
       const contactId = await ctx.db.insert("contacts", {
         name: contact.name,
-        company: contact.company,
         position: contact.position,
         email: contact.email,
         phone: contact.phone,
@@ -347,6 +486,22 @@ export const seed = internalMutation({
         updatedAt: now + lastTimelineOffset * 3_600_000,
       });
       contactIds.push(contactId);
+
+      for (const assignment of contact.companyAssignments) {
+        const companyId = companyIds.get(assignment.companyName);
+        if (!companyId) {
+          throw new Error(`Missing company for seed assignment: ${assignment.companyName}`);
+        }
+
+        await ctx.db.insert("contact_companies", {
+          contactId,
+          companyId,
+          role: assignment.role,
+          isPrimary: assignment.isPrimary ?? false,
+          createdAt,
+        });
+        assignmentCount += 1;
+      }
 
       for (const entry of contact.timeline) {
         await ctx.db.insert("timeline_entries", {
@@ -376,7 +531,9 @@ export const seed = internalMutation({
     return {
       statusesCreated: STATUS_SEEDS.length,
       tagsCreated: tagIds.size,
+      companiesCreated: companyIds.size,
       contactsCreated: contactIds.length,
+      assignmentsCreated: assignmentCount,
     };
   },
 });

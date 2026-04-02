@@ -31,12 +31,15 @@ import {
   FileText,
   Sparkles,
   Trash2,
+  Star,
+  LinkIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { TimelineList } from "@/components/timeline/timeline-list";
 import { OfferDialog } from "@/components/offers/offer-dialog";
 import { ContactDialog } from "@/components/contacts/contact-dialog";
+import { AssignCompanyDialog } from "@/components/contacts/assign-company-dialog";
 
 const offerStatusColors: Record<
   string,
@@ -101,12 +104,19 @@ export default function ContactDetailPage({
   });
   const tags = useQuery(api.tags.api.list);
 
+  const contactCompanies = useQuery(api.contact_companies.api.listByContact, {
+    contactId: id as any,
+  });
+
   const updateStatus = useMutation(api.contacts.api.updateStatus);
   const removeOffer = useMutation(api.offers.api.remove);
+  const unassignCompany = useMutation(api.contact_companies.api.unassign);
+  const setPrimaryCompany = useMutation(api.contact_companies.api.setPrimary);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [offerDialogOpen, setOfferDialogOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<any>(null);
+  const [assignCompanyOpen, setAssignCompanyOpen] = useState(false);
 
   if (contact === undefined) {
     return (
@@ -152,6 +162,27 @@ export default function ContactDetailPage({
     }
   }
 
+  async function handleUnassignCompany(contactCompanyId: string) {
+    try {
+      await unassignCompany({ id: contactCompanyId as any });
+      toast.success("Zuordnung entfernt");
+    } catch {
+      toast.error("Fehler beim Entfernen");
+    }
+  }
+
+  async function handleSetPrimary(contactCompanyId: string) {
+    try {
+      await setPrimaryCompany({
+        id: contactCompanyId as any,
+        contactId: id as any,
+      } as any);
+      toast.success("Hauptunternehmen gesetzt");
+    } catch {
+      toast.error("Fehler beim Setzen");
+    }
+  }
+
   async function handleDeleteOffer(offerId: string) {
     try {
       await removeOffer({ id: offerId as any });
@@ -184,10 +215,14 @@ export default function ContactDetailPage({
                     {contact.firstName} {contact.lastName}
                   </h1>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                    {contact.company && (
+                    {contactCompanies && contactCompanies.length > 0 && (
                       <span className="flex items-center gap-1.5">
                         <Building2 className="size-3.5" />
-                        {contact.company}
+                        {contactCompanies
+                          .filter((cc: any) => cc.isPrimary)
+                          .map((cc: any) => cc.companyName)
+                          .join(", ") ||
+                          (contactCompanies[0] as any)?.companyName}
                       </span>
                     )}
                     {contact.position && (
@@ -306,6 +341,98 @@ export default function ContactDetailPage({
 
         {/* Right column - sidebar */}
         <div className="space-y-6">
+          {/* Companies */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm">Unternehmen</CardTitle>
+                  <CardDescription>
+                    {contactCompanies === undefined
+                      ? "Lade..."
+                      : `${contactCompanies.length} Unternehmen`}
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  onClick={() => setAssignCompanyOpen(true)}
+                >
+                  <Plus className="size-3" />
+                  Zuordnen
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {contactCompanies === undefined ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 rounded-lg" />
+                  ))}
+                </div>
+              ) : contactCompanies.length === 0 ? (
+                <div className="text-center py-4">
+                  <Building2 className="size-8 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    Noch keinem Unternehmen zugeordnet.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {contactCompanies.map((entry: any) => (
+                    <div
+                      key={entry._id}
+                      className="flex items-center justify-between rounded-lg border p-2.5 hover:bg-muted/30 transition-colors group"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/companies/${entry.companyId}`}
+                            className="text-sm font-medium hover:underline truncate"
+                          >
+                            {entry.companyName ?? "Unternehmen"}
+                          </Link>
+                          {entry.isPrimary && (
+                            <Star className="size-3 text-amber-500 fill-amber-500 shrink-0" />
+                          )}
+                        </div>
+                        {entry.role && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] mt-0.5"
+                          >
+                            {entry.role}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {!entry.isPrimary && (
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
+                            className="text-muted-foreground hover:text-amber-500"
+                            onClick={() => handleSetPrimary(entry._id)}
+                            title="Als Hauptunternehmen setzen"
+                          >
+                            <Star className="size-3" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          className="text-destructive"
+                          onClick={() => handleUnassignCompany(entry._id)}
+                        >
+                          <Trash2 className="size-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* AI Summary placeholder */}
           <Card>
             <CardHeader>
@@ -433,6 +560,11 @@ export default function ContactDetailPage({
         }}
         contactId={id}
         offer={editingOffer}
+      />
+      <AssignCompanyDialog
+        open={assignCompanyOpen}
+        onOpenChange={setAssignCompanyOpen}
+        contactId={id}
       />
     </div>
   );

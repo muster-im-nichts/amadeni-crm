@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
+  Building2,
   Kanban,
   Settings,
   PanelLeftClose,
@@ -22,6 +23,7 @@ import { useState } from "react";
 const navItems = [
   { href: "/", label: "Übersicht", icon: LayoutDashboard },
   { href: "/contacts", label: "Kontakte", icon: Users },
+  { href: "/companies", label: "Unternehmen", icon: Building2 },
   { href: "/kanban", label: "Kanban", icon: Kanban },
   { href: "/settings", label: "Einstellungen", icon: Settings },
 ] as const;

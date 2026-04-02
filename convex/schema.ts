@@ -4,7 +4,6 @@ import { v } from "convex/values";
 export default defineSchema({
   contacts: defineTable({
     name: v.string(),
-    company: v.optional(v.string()),
     position: v.optional(v.string()),
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
@@ -16,6 +15,29 @@ export default defineSchema({
     createdAt: v.float64(),
     updatedAt: v.float64(),
   }).index("by_status", ["statusId"]),
+
+  companies: defineTable({
+    name: v.string(),
+    industry: v.optional(v.string()),
+    website: v.optional(v.string()),
+    address: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
+  }),
+
+  contact_companies: defineTable({
+    contactId: v.id("contacts"),
+    companyId: v.id("companies"),
+    role: v.optional(v.string()),
+    isPrimary: v.boolean(),
+    createdAt: v.float64(),
+  })
+    .index("by_contact", ["contactId"])
+    .index("by_company", ["companyId"])
+    .index("by_contact_company", ["contactId", "companyId"]),
 
   statuses: defineTable({
     name: v.string(),

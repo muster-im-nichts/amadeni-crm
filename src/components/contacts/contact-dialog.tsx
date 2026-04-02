@@ -26,14 +26,21 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Building2 } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 const contactSchema = z.object({
   firstName: z.string().min(1, "Vorname ist erforderlich"),
   lastName: z.string().min(1, "Nachname ist erforderlich"),
-  email: z.string().email("Ungültige E-Mail").or(z.literal("")),
+  email: z.string().email("Ungueltige E-Mail").or(z.literal("")),
   phone: z.string(),
-  company: z.string(),
   position: z.string(),
   notes: z.string(),
   statusId: z.string(),
@@ -48,7 +55,7 @@ export interface ContactDefaultValues {
   lastName?: string;
   email?: string;
   phone?: string;
-  company?: string;
+  companyName?: string;
   position?: string;
   notes?: string;
   website?: string;
@@ -67,7 +74,6 @@ const emptyValues: ContactFormValues = {
   lastName: "",
   email: "",
   phone: "",
-  company: "",
   position: "",
   notes: "",
   statusId: "",
@@ -84,11 +90,16 @@ export function ContactDialog({
   const createContact = useMutation(api.contacts.api.create);
   const updateContact = useMutation(api.contacts.api.update);
   const statuses = useQuery(api.statuses.api.list);
+  const companies = useQuery(api.companies.api.list);
+  const createCompany = useMutation(api.companies.api.create);
+  const assignCompany = useMutation(api.contact_companies.api.assign);
 
   const isEditing = !!contact;
 
   const hasExtraDefaults = !!(defaultValues?.website || defaultValues?.address);
   const [extraOpen, setExtraOpen] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [companySearch, setCompanySearch] = useState("");
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
@@ -102,24 +113,38 @@ export function ContactDialog({
         lastName: contact.lastName ?? "",
         email: contact.email ?? "",
         phone: contact.phone ?? "",
-        company: contact.company ?? "",
         position: contact.position ?? "",
         notes: contact.notes ?? "",
         statusId: contact.statusId ?? contact.status?._id ?? "",
         website: contact.website ?? "",
         address: contact.address ?? "",
       });
+      setSelectedCompanyId("");
+      setCompanySearch("");
     } else {
+      const { companyName, ...restDefaults } = defaultValues ?? {};
       form.reset({
         ...emptyValues,
-        ...defaultValues,
+        ...restDefaults,
         statusId: statuses?.[0]?._id ?? "",
       });
+      setSelectedCompanyId("");
+      setCompanySearch("");
+      if (companyName && companies) {
+        const match = companies.find(
+          (c: any) => c.name.toLowerCase() === companyName.toLowerCase(),
+        );
+        if (match) {
+          setSelectedCompanyId((match as any)._id);
+        } else {
+          setCompanySearch(companyName);
+        }
+      }
       if (hasExtraDefaults) {
         setExtraOpen(true);
       }
     }
-  }, [contact, open, statuses, form, defaultValues, hasExtraDefaults]);
+  }, [contact, open, statuses, form, defaultValues, hasExtraDefaults, companies]);
 
   async function onSubmit(data: ContactFormValues) {
     try {
@@ -131,14 +156,37 @@ export function ContactDialog({
         } as any);
         toast.success("Kontakt aktualisiert");
       } else {
-        await createContact({
+        const contactId = await createContact({
           ...data,
           statusId: data.statusId || undefined,
         } as any);
+
+        // Assign company if selected or typed
+        let companyId = selectedCompanyId;
+        if (!companyId && companySearch.trim()) {
+          companyId = (await createCompany({
+            name: companySearch.trim(),
+          } as any)) as any;
+        }
+        if (companyId && contactId) {
+          try {
+            await assignCompany({
+              contactId: contactId as any,
+              companyId: companyId as any,
+              role: data.position || undefined,
+              isPrimary: true,
+            } as any);
+          } catch {
+            // Non-blocking: contact was created but company assignment failed
+          }
+        }
+
         toast.success("Kontakt erstellt");
       }
       onOpenChange(false);
       form.reset();
+      setSelectedCompanyId("");
+      setCompanySearch("");
     } catch {
       toast.error(
         isEditing ? "Fehler beim Aktualisieren" : "Fehler beim Erstellen",
@@ -216,18 +264,79 @@ export function ContactDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="company">Unternehmen</Label>
-              <Input
-                id="company"
-                placeholder="Firma GmbH"
-                {...form.register("company")}
-              />
+              <Label>Unternehmen</Label>
+              {!isEditing && (
+                selectedCompanyId ? (
+                  <div className="flex items-center justify-between rounded-lg border px-3 py-1.5">
+                    <span className="text-sm">
+                      {companies?.find((c: any) => c._id === selectedCompanyId)
+                        ?.name ?? "..."}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => {
+                        setSelectedCompanyId("");
+                        setCompanySearch("");
+                      }}
+                    >
+                      Aendern
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border">
+                    <Command>
+                      <CommandInput
+                        placeholder="Unternehmen suchen..."
+                        value={companySearch}
+                        onValueChange={setCompanySearch}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {companySearch.trim()
+                            ? `"${companySearch.trim()}" wird erstellt`
+                            : "Kein Unternehmen gefunden"}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {companies
+                            ?.filter((c: any) => {
+                              if (!companySearch) return true;
+                              return c.name
+                                .toLowerCase()
+                                .includes(companySearch.toLowerCase());
+                            })
+                            .slice(0, 6)
+                            .map((c: any) => (
+                              <CommandItem
+                                key={c._id}
+                                value={c.name}
+                                onSelect={() => {
+                                  setSelectedCompanyId(c._id);
+                                  setCompanySearch("");
+                                }}
+                              >
+                                <Building2 className="size-3.5 text-muted-foreground" />
+                                {c.name}
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </div>
+                )
+              )}
+              {isEditing && (
+                <p className="text-xs text-muted-foreground">
+                  Unternehmen werden ueber die Detailseite verwaltet.
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="position">Position</Label>
               <Input
                 id="position"
-                placeholder="Geschäftsführer"
+                placeholder="Geschaeftsfuehrer"
                 {...form.register("position")}
               />
             </div>

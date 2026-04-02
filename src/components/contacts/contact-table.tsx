@@ -115,7 +115,19 @@ export function ContactTable({ contacts, onEdit }: ContactTableProps) {
               </div>
             </TableCell>
             <TableCell className="hidden sm:table-cell text-muted-foreground">
-              {contact.company || "—"}
+              {contact.primaryCompany ? (
+                <span>
+                  {contact.primaryCompany.companyName}
+                  {contact.primaryCompany.role && (
+                    <span className="text-xs text-muted-foreground/70">
+                      {" "}
+                      ({contact.primaryCompany.role})
+                    </span>
+                  )}
+                </span>
+              ) : (
+                contact.company || "\u2014"
+              )}
             </TableCell>
             <TableCell>
               {contact.status ? (

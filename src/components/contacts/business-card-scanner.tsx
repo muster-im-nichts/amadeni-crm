@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useAction } from "convex/react";
+import { useAction, useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import {
   Dialog,
@@ -14,7 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { ScanLine, Upload, Check, Minus, Loader2, UserPlus } from "lucide-react";
+import { ScanLine, Upload, Check, Minus, Loader2, UserPlus, Building2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 type ScannedData = {
   name: string | null;
@@ -31,7 +32,7 @@ interface BusinessCardScannerProps {
   onContactCreate: (data: {
     firstName: string;
     lastName: string;
-    company: string;
+    companyName: string;
     position: string;
     email: string;
     phone: string;
@@ -60,6 +61,16 @@ export function BusinessCardScanner({ onContactCreate, className }: BusinessCard
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scanBusinessCard = useAction(api.contacts.scan.scanBusinessCard);
+  const companies = useQuery(api.companies.api.list);
+
+  // Find matching company for scanned data
+  const matchedCompany =
+    scannedData?.company && companies
+      ? companies.find(
+          (c: any) =>
+            c.name.toLowerCase() === scannedData.company!.toLowerCase(),
+        )
+      : null;
 
   const resetState = useCallback(() => {
     setImagePreview(null);
@@ -138,7 +149,7 @@ export function BusinessCardScanner({ onContactCreate, className }: BusinessCard
     onContactCreate({
       firstName,
       lastName,
-      company: scannedData.company ?? "",
+      companyName: scannedData.company ?? "",
       position: scannedData.position ?? "",
       email: scannedData.email ?? "",
       phone: scannedData.phone ?? "",
@@ -257,20 +268,37 @@ export function BusinessCardScanner({ onContactCreate, className }: BusinessCard
                     const value = scannedData[field];
                     const hasValue = value !== null && value !== "";
                     return (
-                      <div key={field} className="flex items-start gap-2">
-                        {hasValue ? (
-                          <Check className="size-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                        ) : (
-                          <Minus className="size-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] text-muted-foreground leading-none mb-0.5">
-                            {fieldLabels[field]}
-                          </p>
-                          <p className={`text-sm truncate ${hasValue ? "font-medium" : "text-muted-foreground/40 italic"}`}>
-                            {hasValue ? value : "—"}
-                          </p>
+                      <div key={field}>
+                        <div className="flex items-start gap-2">
+                          {hasValue ? (
+                            <Check className="size-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                          ) : (
+                            <Minus className="size-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] text-muted-foreground leading-none mb-0.5">
+                              {fieldLabels[field]}
+                            </p>
+                            <p className={`text-sm truncate ${hasValue ? "font-medium" : "text-muted-foreground/40 italic"}`}>
+                              {hasValue ? value : "\u2014"}
+                            </p>
+                          </div>
                         </div>
+                        {field === "company" && hasValue && (
+                          <div className="ml-5.5 mt-1">
+                            {matchedCompany ? (
+                              <Badge variant="secondary" className="text-[10px] gap-1">
+                                <Building2 className="size-2.5" />
+                                Bestehendes Unternehmen gefunden
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-[10px] gap-1 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+                                <Building2 className="size-2.5" />
+                                Wird neu erstellt
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

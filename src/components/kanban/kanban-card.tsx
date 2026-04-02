@@ -49,10 +49,12 @@ export function KanbanCard({ contact, isDragging }: KanbanCardProps) {
       </p>
 
       {/* Company */}
-      {contact.company && (
+      {(contact.primaryCompany?.companyName || contact.company) && (
         <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
           <Building2 className="size-3 shrink-0" />
-          <span className="truncate">{contact.company}</span>
+          <span className="truncate">
+            {contact.primaryCompany?.companyName || contact.company}
+          </span>
         </p>
       )}
 

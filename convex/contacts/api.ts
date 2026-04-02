@@ -1,9 +1,11 @@
-import { mutation, query } from "../_generated/server";
+import type { IndexRangeBuilder } from "convex/server";
 import { v } from "convex/values";
+import type { Doc, Id } from "../_generated/dataModel";
+import type { QueryCtx } from "../_generated/server";
+import { mutation, query } from "../_generated/server";
 
 const createArgs = {
   name: v.string(),
-  company: v.optional(v.string()),
   position: v.optional(v.string()),
   email: v.optional(v.string()),
   phone: v.optional(v.string()),
@@ -17,7 +19,6 @@ const createArgs = {
 const updateArgs = {
   id: v.id("contacts"),
   name: v.optional(v.string()),
-  company: v.optional(v.string()),
   position: v.optional(v.string()),
   email: v.optional(v.string()),
   phone: v.optional(v.string()),
@@ -28,11 +29,52 @@ const updateArgs = {
   tags: v.optional(v.array(v.string())),
 };
 
+async function getPrimaryCompanyForContact(ctx: QueryCtx, contactId: Id<"contacts">) {
+  const assignments = await ctx.db
+    .query("contact_companies")
+    .withIndex(
+      "by_contact",
+      (q: IndexRangeBuilder<Doc<"contact_companies">, ["contactId", "_creationTime"]>) =>
+        q.eq("contactId", contactId),
+    )
+    .collect();
+
+  const primaryAssignment =
+    assignments.find((assignment) => assignment.isPrimary) ?? assignments[0];
+  if (!primaryAssignment) {
+    return null;
+  }
+
+  const company = await ctx.db.get(primaryAssignment.companyId);
+  if (!company) {
+    return null;
+  }
+
+  return {
+    ...company,
+    role: primaryAssignment.role,
+    isPrimary: primaryAssignment.isPrimary,
+    assignmentId: primaryAssignment._id,
+  };
+}
+
+async function enrichContact(ctx: QueryCtx, contact: Doc<"contacts">) {
+  const primaryCompany = await getPrimaryCompanyForContact(ctx, contact._id);
+  return {
+    ...contact,
+    primaryCompany,
+    company: primaryCompany?.name,
+  };
+}
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
     const contacts = await ctx.db.query("contacts").collect();
-    return contacts.sort((a, b) => b.updatedAt - a.updatedAt);
+    const enrichedContacts = await Promise.all(
+      contacts.map((contact) => enrichContact(ctx, contact)),
+    );
+    return enrichedContacts.sort((a, b) => b.updatedAt - a.updatedAt);
   },
 });
 
@@ -45,7 +87,10 @@ export const listByStatus = query({
       .query("contacts")
       .withIndex("by_status", (q) => q.eq("statusId", args.statusId))
       .collect();
-    return contacts.sort((a, b) => b.updatedAt - a.updatedAt);
+    const enrichedContacts = await Promise.all(
+      contacts.map((contact) => enrichContact(ctx, contact)),
+    );
+    return enrichedContacts.sort((a, b) => b.updatedAt - a.updatedAt);
   },
 });
 
@@ -54,7 +99,12 @@ export const get = query({
     id: v.id("contacts"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const contact = await ctx.db.get(args.id);
+    if (!contact) {
+      return null;
+    }
+
+    return await enrichContact(ctx, contact);
   },
 });
 
@@ -155,6 +205,10 @@ export const remove = mutation({
       .query("offers")
       .withIndex("by_contact", (q) => q.eq("contactId", args.id))
       .collect();
+    const companyAssignments = await ctx.db
+      .query("contact_companies")
+      .withIndex("by_contact", (q) => q.eq("contactId", args.id))
+      .collect();
 
     for (const entry of timelineEntries) {
       await ctx.db.delete(entry._id);
@@ -162,6 +216,10 @@ export const remove = mutation({
 
     for (const offer of offers) {
       await ctx.db.delete(offer._id);
+    }
+
+    for (const assignment of companyAssignments) {
+      await ctx.db.delete(assignment._id);
     }
 
     await ctx.db.delete(args.id);
@@ -176,18 +234,42 @@ export const search = query({
   },
   handler: async (ctx, args) => {
     const searchTerm = args.searchTerm.trim().toLocaleLowerCase("de-DE");
+    const contacts = await ctx.db.query("contacts").collect();
+
     if (!searchTerm) {
-      const contacts = await ctx.db.query("contacts").collect();
-      return contacts.sort((a, b) => b.updatedAt - a.updatedAt);
+      const enrichedContacts = await Promise.all(
+        contacts.map((contact) => enrichContact(ctx, contact)),
+      );
+      return enrichedContacts.sort((a, b) => b.updatedAt - a.updatedAt);
     }
 
-    const contacts = await ctx.db.query("contacts").collect();
-    return contacts
-      .filter((contact) => {
+    const matches = await Promise.all(
+      contacts.map(async (contact) => {
         const name = contact.name.toLocaleLowerCase("de-DE");
-        const company = contact.company?.toLocaleLowerCase("de-DE") ?? "";
-        return name.includes(searchTerm) || company.includes(searchTerm);
-      })
-      .sort((a, b) => b.updatedAt - a.updatedAt);
+        if (name.includes(searchTerm)) {
+          return true;
+        }
+
+        const assignments = await ctx.db
+          .query("contact_companies")
+          .withIndex("by_contact", (q) => q.eq("contactId", contact._id))
+          .collect();
+
+        for (const assignment of assignments) {
+          const company = await ctx.db.get(assignment.companyId);
+          if (company?.name.toLocaleLowerCase("de-DE").includes(searchTerm)) {
+            return true;
+          }
+        }
+
+        return false;
+      }),
+    );
+
+    const filteredContacts = contacts.filter((_, index) => matches[index]);
+    const enrichedContacts = await Promise.all(
+      filteredContacts.map((contact) => enrichContact(ctx, contact)),
+    );
+    return enrichedContacts.sort((a, b) => b.updatedAt - a.updatedAt);
   },
 });
